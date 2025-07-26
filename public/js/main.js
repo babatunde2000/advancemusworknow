@@ -220,15 +220,13 @@ class AdvanceTravels {
       
       if (result.success) {
         this.showNotification(result.message, 'success');
-        // Store selected country for pricing
-        const selectedCountry = formData.get('preferredCountry');
-        if (selectedCountry) {
-          localStorage.setItem('selectedCountry', selectedCountry);
-        }
         
-        setTimeout(() => {
-          window.location.href = '/extended-registration';
-        }, 1500);
+        // Redirect immediately on success
+        if (result.redirect) {
+          setTimeout(() => {
+            window.location.href = result.redirect;
+          }, 1000);
+        }
       } else {
         this.showNotification(result.message || 'Something went wrong', 'error');
         if (result.errors) {
@@ -237,7 +235,7 @@ class AdvanceTravels {
       }
     } catch (error) {
       console.error('Application submission error:', error);
-      this.showNotification('Network error. Please try again.', 'error');
+      this.showNotification('Connection error. Please check your internet and try again.', 'error');
     } finally {
       this.setLoadingState(submitBtn, false, originalContent);
     }

@@ -29,7 +29,7 @@
                         <a href="/dashboard" class="nav-link">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" onclick="logout()" class="nav-link">Logout</a>
+                        <a href="#" onclick="showUserLogoutModal()" class="nav-link">Logout</a>
                     </li>
                     <% } else { %>
                     <li class="nav-item">
@@ -73,14 +73,39 @@
     </div>
 </div>
 
-<!-- Logout Confirmation Modal -->
-<div id="logoutModal" class="logout-modal">
-    <div class="logout-modal-content">
+<!-- User Logout Confirmation Modal -->
+<div id="userLogoutModal" class="modal">
+    <div class="modal-content">
         <h3>Confirm Logout</h3>
         <p>Are you sure you want to log out of your account?</p>
-        <div class="logout-actions">
-            <button id="cancelLogout" class="btn btn-cancel">Cancel</button>
-            <button id="confirmLogout" class="btn btn-confirm">Yes, Logout</button>
+        <div class="modal-actions">
+            <button onclick="closeUserLogoutModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="confirmUserLogout()" class="btn btn-primary">Yes, Logout</button>
         </div>
     </div>
 </div>
+
+<script>
+function showUserLogoutModal() {
+    document.getElementById('userLogoutModal').style.display = 'flex';
+}
+
+function closeUserLogoutModal() {
+    document.getElementById('userLogoutModal').style.display = 'none';
+}
+
+function confirmUserLogout() {
+    fetch('/auth/logout', { method: 'POST' })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                window.location.href = result.redirect;
+            }
+        });
+}
+
+// Legacy function for backward compatibility
+function logout() {
+    showUserLogoutModal();
+}
+</script>

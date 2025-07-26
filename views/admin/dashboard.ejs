@@ -12,7 +12,7 @@
             <a href="/admin/users" class="nav-btn">Users</a>
             <a href="/admin/chat" class="nav-btn">Chat</a>
             <a href="/admin/updates" class="nav-btn">Updates</a>
-            <a href="#" onclick="adminLogout()" class="nav-btn logout">Logout</a>
+            <a href="#" onclick="showLogoutModal()" class="nav-btn logout">Logout</a>
         </div>
         
         <div class="stats-grid">
@@ -122,6 +122,18 @@
     </div>
 </div>
 
+<!-- Admin Logout Modal -->
+<div id="adminLogoutModal" class="modal">
+    <div class="modal-content">
+        <h3>Confirm Logout</h3>
+        <p>Are you sure you want to log out of the admin panel?</p>
+        <div class="modal-actions">
+            <button onclick="closeLogoutModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="confirmAdminLogout()" class="btn btn-primary">Yes, Logout</button>
+        </div>
+    </div>
+</div>
+
 <script>
 function updateStatus(userId) {
     document.getElementById('userId').value = userId;
@@ -158,7 +170,15 @@ document.getElementById('statusUpdateForm').addEventListener('submit', async (e)
     }
 });
 
-function adminLogout() {
+function showLogoutModal() {
+    document.getElementById('adminLogoutModal').style.display = 'flex';
+}
+
+function closeLogoutModal() {
+    document.getElementById('adminLogoutModal').style.display = 'none';
+}
+
+function confirmAdminLogout() {
     fetch('/auth/logout', { method: 'POST' })
         .then(response => response.json())
         .then(result => {
@@ -169,13 +189,29 @@ function adminLogout() {
 }
 
 // Modal handling
-document.querySelector('.close-modal').addEventListener('click', () => {
-    document.getElementById('statusModal').style.display = 'none';
+document.querySelectorAll('.close-modal').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const modal = e.target.closest('.modal');
+        modal.style.display = 'none';
+    });
 });
 
 window.addEventListener('click', (e) => {
-    if (e.target === document.getElementById('statusModal')) {
+    if (e.target.classList.contains('modal')) {
         document.getElementById('statusModal').style.display = 'none';
+        document.getElementById('adminLogoutModal').style.display = 'none';
     }
 });
+
+// Add styles for modal actions
+const style = document.createElement('style');
+style.textContent = `
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+`;
+document.head.appendChild(style);
 </script>

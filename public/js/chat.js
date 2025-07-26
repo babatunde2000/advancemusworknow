@@ -261,9 +261,18 @@ class AdvancedChatSystem {
     const chatInput = document.getElementById('chatInput');
     const message = chatInput.value.trim();
 
-    if (!message || !this.socket) return;
+    if (!message) return;
+    
+    // Clear input immediately to prevent double sending
+    chatInput.value = '';
+    this.autoResizeInput(chatInput);
 
-    // Display message immediately for better UX
+    if (!this.socket) {
+      this.showError('Connection lost. Please refresh the page.');
+      return;
+    }
+
+    // Create message data
     const messageData = {
       sessionId: this.sessionId,
       sender: this.userName,
@@ -272,20 +281,11 @@ class AdvancedChatSystem {
       timestamp: new Date()
     };
 
-    this.displayMessage(messageData, true); // true for optimistic update
-
     // Send to server
     this.socket.emit('chat-message', messageData);
-
-    // Clear input
-    chatInput.value = '';
-    this.autoResizeInput(chatInput);
-
-    // Scroll to bottom
-    this.scrollToBottom();
   }
 
-  displayMessage(data, isOptimistic = false) {
+  displayMessage(data) {
     const messagesContainer = document.getElementById('chatMessages');
     if (!messagesContainer) return;
 
@@ -295,11 +295,24 @@ class AdvancedChatSystem {
       welcomeMessage.remove();
     }
 
+    // Check for duplicate messages
+    const existingMessages = messagesContainer.querySelectorAll('.message');
+    const lastMessage = existingMessages[existingMessages.length - 1];
+    if (lastMessage) {
+      const lastMessageText = lastMessage.querySelector('.message-text')?.textContent;
+      const lastMessageTime = lastMessage.querySelector('.message-time')?.textContent;
+      const currentTime = new Date(data.timestamp).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      if (lastMessageText === data.message && lastMessageTime === currentTime) {
+        return; // Skip duplicate message
+      }
+    }
+
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${data.senderType}`;
-    if (isOptimistic) {
-      messageDiv.classList.add('sending');
-    }
 
     const timeString = new Date(data.timestamp).toLocaleTimeString([], {
       hour: '2-digit',
@@ -326,13 +339,6 @@ class AdvancedChatSystem {
       messageDiv.style.transform = 'translateY(0)';
       messageDiv.style.transition = 'all 0.3s ease';
     }, 10);
-
-    // Remove optimistic class after server confirmation
-    if (isOptimistic) {
-      setTimeout(() => {
-        messageDiv.classList.remove('sending');
-      }, 1000);
-    }
 
     this.scrollToBottom();
   }
